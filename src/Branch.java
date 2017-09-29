@@ -65,4 +65,22 @@ public class Branch {
     public String getName() {
         return _name;
     }
+
+    public boolean registerTransaction(String customerName, double amount) {
+        Customer customer = queryCustomer(customerName);
+
+        if(customer != null) {
+            if (customer.saveTransaction(amount)) {
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    private Customer queryCustomer(String customerName) {
+        return null;
+    }
 }

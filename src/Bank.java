@@ -3,7 +3,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.List;
 
-public class Bank {
+public abstract class Bank {
     List<Branch> branches;
     BranchBuilder builder;
 
@@ -12,34 +12,45 @@ public class Bank {
         builder = new BranchBuilder();
     }
 
-    public boolean addTransaction(final String branchName, final String customerName,
-                                  double amount) {
+    public boolean registerTransaction(final String branchName, final String customerName,
+                                       double amount) {
         Branch branch = queryBranch(branchName);
 
         if(branch != null) {
-            Customer customer = queryBranchCustomer(branch, customerName);
-
-            if (customer != null) {
-                customer.registerTransaction(amount);
+            if (branch.registerTransaction(customerName, amount)) {
+                return true;
             } else {
                 return false;
             }
         } else {
             return false;
         }
-
-        return true;
     }
 
-    public void addBranch() {
+    public Branch queryBranch(String branchName) {
+        Branch result = null;
+
+        int index = searchBrand(branchName);
+
+        if(index >= 0) {
+            result =  branches.get(index);
+        }
+
+        return result;
+    }
+
+    public boolean addBranch() {
         String branchName = getBranchName();
 
         if(isDuplicatedBranchName(branchName)) {
             System.out.println("Branch " + branchName + " already exists.");
+            return false;
         } else {
             Branch branch = builder.name(branchName).build();
             branches.add(branch);
         }
+
+        return true;
     }
 
     private String getBranchName() {
@@ -60,6 +71,29 @@ public class Bank {
         return result;
     }
 
+    public boolean editBranch(String oldBrach, Branch newBranch) {
+        Branch branch = queryBranch(oldBrach);
+        int i = branches.indexOf(branch);
+
+        if(branch != null) {
+            branches.set(i, newBranch);
+            return false;
+        }
+
+        return true;
+    }
+
+    public int searchBrand(String branch) {
+
+        for(int i = 0; i < branches.size(); i++) {
+            if(branches.get(i).getName().equals(branch)) {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
     private boolean isDuplicatedBranchName(String branchName) {
         if (branchName.isEmpty()) {
             throw new RuntimeException("Branch name is empty");
@@ -74,4 +108,14 @@ public class Bank {
         return false;
     }
 
+    public abstract void open();
+
+    public abstract void close();
+
+    public void showAllBranches() {
+        System.out.println("Existing branches: ");
+        for(Branch branch : branches) {
+            System.out.println(branch.getName());
+        }
+    }
 }

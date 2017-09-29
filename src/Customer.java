@@ -13,4 +13,8 @@ public class Customer {
     public String getName() {
         return name;
     }
+
+    public boolean saveTransaction(double amount) {
+        return false;
+    }
 }
