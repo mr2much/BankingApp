@@ -1,12 +1,9 @@
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Branch {
 
-    private final String _name;
+    private String _name;
     List<Customer> customers;
     CustomerBuilder customerBuilder;
 
@@ -16,50 +13,33 @@ public class Branch {
         _name = builder.getName();
     }
 
-    public void addCustomer() {
-        String customerName = getCustomerName();
-
-        if(isDuplicateCustomer(customerName)) {
-            System.out.println("Customer " + customerName + " is already registered!");
-        } else {
-            Customer customer = customerBuilder.name(customerName).build();
-            customers.add(customer);
+    public boolean addCustomer(final String customerName, final double initialTransaction) {
+        if(queryCustomer(customerName) == null) {
+            customers.add(customerBuilder.name(customerName)
+                    .initialTransaction(initialTransaction).build());
+            return true;
         }
+
+        return false;
     }
 
-    private String getCustomerName() {
-        String result = null;
-
-        System.out.println("Please enter the customer name: ");
-
-        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-
-        try {
-            result = reader.readLine();
-        } catch (IOException e) {
-            System.err.println("IO input error trying to get a branch name!");
-        }
-
-        if(result == null) {
-            result = "";
-        }
-
-        return result;
-    }
-
-    private boolean isDuplicateCustomer(String name) {
-        if (name.isEmpty()) {
+    private Customer queryCustomer(String customerName) {
+        if (customerName.isEmpty()) {
             throw new RuntimeException("Customer name is empty.");
         }
 
         for (Customer customer :
                 customers) {
-            if (name.equals(customer.getName())) {
-                return true;
+            if (customerName.equals(customer.getName())) {
+                return customer;
             }
         }
 
-        return false;
+        return null;
+    }
+
+    public void setName(final String newName) {
+        this._name = newName;
     }
 
     public String getName() {
@@ -70,17 +50,28 @@ public class Branch {
         Customer customer = queryCustomer(customerName);
 
         if(customer != null) {
-            if (customer.saveTransaction(amount)) {
-                return true;
-            } else {
-                return false;
-            }
-        } else {
-            return false;
+            System.out.println("Guardando transaccion para cliente: " + customerName);
+            System.out.println("Monto: " + amount);
+            customer.saveTransaction(amount);
+            return true;
+        }
+
+        return false;
+    }
+
+    public void showCustomerList() {
+        System.out.println("Displaying information for customers");
+        for(Customer customer : customers) {
+            System.out.println("\tCustomer name: " + customer.getName());
+            customer.showTransactions();
         }
     }
 
-    private Customer queryCustomer(String customerName) {
-        return null;
+    public void showInformationForCustomer(String customerName) {
+        Customer customer = queryCustomer(customerName);
+
+        if(customer != null) {
+            customer.showTransactions();
+        }
     }
 }

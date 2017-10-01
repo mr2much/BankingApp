@@ -4,6 +4,7 @@ import java.io.InputStreamReader;
 import java.util.List;
 
 public abstract class Bank {
+    private String name;
     List<Branch> branches;
     BranchBuilder builder;
 
@@ -17,14 +18,12 @@ public abstract class Bank {
         Branch branch = queryBranch(branchName);
 
         if(branch != null) {
-            if (branch.registerTransaction(customerName, amount)) {
-                return true;
-            } else {
-                return false;
-            }
-        } else {
-            return false;
+            System.out.println("Registrando transaccion en branch: " + branchName);
+            System.out.println("Para cliente: " + customerName);
+            return branch.registerTransaction(customerName, amount);
         }
+
+        return false;
     }
 
     public Branch queryBranch(String branchName) {
@@ -42,7 +41,7 @@ public abstract class Bank {
     public boolean addBranch() {
         String branchName = getBranchName();
 
-        if(isDuplicatedBranchName(branchName)) {
+        if(queryBranch(branchName) != null) {
             System.out.println("Branch " + branchName + " already exists.");
             return false;
         } else {
@@ -71,17 +70,18 @@ public abstract class Bank {
         return result;
     }
 
-    public boolean editBranch(String oldBrach, Branch newBranch) {
-        Branch branch = queryBranch(oldBrach);
-        int i = branches.indexOf(branch);
+    public boolean editBranch(String oldBranch, String newBranch) {
+        Branch branch = queryBranch(oldBranch);
 
         if(branch != null) {
-            branches.set(i, newBranch);
-            return false;
+            branch.setName(newBranch);
+            return true;
         }
 
-        return true;
+        return false;
     }
+
+
 
     public int searchBrand(String branch) {
 
@@ -94,20 +94,6 @@ public abstract class Bank {
         return -1;
     }
 
-    private boolean isDuplicatedBranchName(String branchName) {
-        if (branchName.isEmpty()) {
-            throw new RuntimeException("Branch name is empty");
-        }
-
-        for (Branch branch : branches) {
-            if(branchName.equals(branch.getName())) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     public abstract void open();
 
     public abstract void close();
@@ -116,6 +102,76 @@ public abstract class Bank {
         System.out.println("Existing branches: ");
         for(Branch branch : branches) {
             System.out.println(branch.getName());
+            branch.showCustomerList();
         }
+    }
+
+    public void showAllCustomersForBranch(final String branchName) {
+        Branch branch = queryBranch(branchName);
+
+        if(branch != null) {
+            branch.showCustomerList();
+        }
+    }
+
+    public void showInformationForCustomer(final String branchName, final String customerName) {
+        Branch branch = queryBranch(branchName);
+
+        if(branch != null) {
+            branch.showInformationForCustomer(customerName);
+        }
+    }
+
+    public boolean addNewCustomer(String branchName, String customerName, double transaction) {
+        Branch branch = queryBranch(branchName);
+
+        if(branch != null) {
+            return branch.addCustomer(customerName, transaction);
+        }
+
+        return false;
+    }
+
+    public boolean deleteBranch(String branchToDelete) {
+        Branch branch = queryBranch(branchToDelete);
+
+        if(branch != null) {
+            System.out.println("Are you sure that you want to delete branch " + branchToDelete + " (y/n)");
+            if(confirmAction()) {
+                return branches.remove(branch);
+            }
+        } else {
+            System.out.println("Branch " + branchToDelete + " was not found.");
+        }
+
+        return false;
+    }
+
+    private boolean confirmAction() {
+        String answer = getUserInput();
+
+        if(answer.toLowerCase().startsWith("y")) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private String getUserInput() {
+        String result = null;
+
+        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+
+        try {
+            result = reader.readLine();
+        } catch (IOException ex) {
+            System.err.println("IO Error when trying to read an answer.");
+        }
+
+        if (result == null) {
+            result = "";
+        }
+
+        return result;
     }
 }
